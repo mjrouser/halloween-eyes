@@ -70,6 +70,15 @@ halloween-eyes/
 
 **Tasks 1–8 are pure JS and need no hardware.** Tasks 9–13 need the Pi. Start now.
 
+> **Corrections applied during Task 1 (2026-09-20):**
+> 1. `node --test tests/` does not work on Node 22 — a positional directory argument is
+>    treated as a file to execute and fails to resolve. Use bare `node --test`, which scans
+>    recursively from the repo root. Per-file invocations elsewhere in this plan are fine.
+> 2. Task 1's `tools/check-no-random.sh` grepped raw file text, so it fired on the comment in
+>    `rng.js` that explains the rule — the task could not pass as written. The script now
+>    strips line and block comments before matching. Verified against six cases: real calls
+>    are caught (including after a comment on the same line), comment prose is not.
+
 ---
 
 ### Task 1: Repo scaffold and deterministic RNG
@@ -111,7 +120,7 @@ Two animated eyes, one per front window, on a Raspberry Pi 5.
 
 ## Test
 
-    node --test tests/
+    node --test
     .venv/bin/pytest tests/
 
 ## Design
@@ -1334,7 +1343,7 @@ Expected: PASS, 11 tests. If the yoking test fails, the bug is in `idleGaze` —
 - [ ] **Step 5: Run the full suite and the lint**
 
 ```bash
-node --test tests/ && ./tools/check-no-random.sh
+node --test && ./tools/check-no-random.sh
 ```
 
 Expected: all tests pass, lint OK.
@@ -2437,7 +2446,7 @@ monitors and power. Expect one monitor only; the 3B has a single HDMI.
 
 ```bash
 cd ~/repos/halloween-eyes
-node --test tests/ && ./tools/check-no-random.sh && .venv/bin/pytest tests/ -q
+node --test && ./tools/check-no-random.sh && .venv/bin/pytest tests/ -q
 ```
 
 Expected: all green.
