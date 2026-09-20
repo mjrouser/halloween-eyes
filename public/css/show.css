@@ -1,0 +1,39 @@
+/* The window itself is the frame; everything here is black except the eye. */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #050409;
+  overflow: hidden;
+  cursor: none;
+}
+
+#stage {
+  position: absolute;
+  inset: 0;
+}
+
+#stage .eye {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+
+#stage .eye svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Painted over both screens during install so assignment is verifiable at a glance,
+   instead of squinting at brow angles from the pavement. */
+#setup-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 22vh/1 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  color: #23f0a0;
+  background: rgba(0, 0, 0, 0.75);
+}
