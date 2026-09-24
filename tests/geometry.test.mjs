@@ -32,7 +32,7 @@ test('the brow sits lower on the inner edge of each eye', () => {
   assert.ok(R.brow.yLeft > R.brow.yRight, 'right eye should scowl inward (leftward)');
 });
 
-test('glints mirror about the eye centre', () => {
+test('glints mirror about the eye center', () => {
   const L = eyeGeometry('amber', 'L');
   const R = eyeGeometry('amber', 'R');
   near(L.glint.x - BASE.cx, BASE.cx - R.glint.x);

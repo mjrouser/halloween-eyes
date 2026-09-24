@@ -20,7 +20,7 @@ export const PALETTES = {
     sclera: ['#F2FBCF', '#C3E07A', '#6B9B34'],
     iris:   ['#7BA83A', '#48701E', '#1B3A0A'],
     pupil: '#080F04', glint: '#FBFFE8', glintOpacity: 0.5, halo: '#9FD84A',
-    // A cat's eye has a vertical slit — that, not the colour alone,
+    // A cat's eye has a vertical slit — that, not the color alone,
     // is what turns a green eye into a cat.
     pupilOverride: 'slit'
   }

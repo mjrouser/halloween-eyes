@@ -2,7 +2,7 @@
 # Fails if Math.random() appears in show logic.
 #
 # Both browser windows compute the show independently from the wall clock, so a
-# single random call desynchronises them. All variation must come from hashing a
+# single random call desynchronizes them. All variation must come from hashing a
 # time-slot index instead — see public/js/rng.js and DESIGN.md section 4.3.
 #
 # Comments are stripped before matching, so prose explaining the rule (including

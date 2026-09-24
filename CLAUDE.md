@@ -15,7 +15,7 @@ those documents are not in context.
 
 **No `Math.random()` anywhere in show logic.**
 Both browser windows compute every frame independently from the wall clock. A single random
-call desynchronises them. All variation comes from hashing a time-slot index — same slot, same
+call desynchronizes them. All variation comes from hashing a time-slot index — same slot, same
 result, forever. Enforced by `tools/check-no-random.sh`.
 
 **Both eyes share ONE timeline.**

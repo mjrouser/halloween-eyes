@@ -1,6 +1,6 @@
 // A pose is WHERE things point. A motion profile is HOW it gets there.
 // These are separate tables on purpose: a snap and a drift can target the same
-// pose and read as completely different behaviours.
+// pose and read as completely different behaviors.
 //
 // Gaze is modelled as one shared target plus a vergence offset:
 //     eyeL = target + vergence
@@ -10,14 +10,14 @@
 
 /**
  * target/vergence/lid/brow/pupil. `target: null` means "use the idle scan value".
- * `stage` names an optional stage-position behaviour.
+ * `stage` names an optional stage-position behavior.
  */
 export const POSES = {
   idle:          { target: null, vergence:  0.0, lid: 0.00, brow: 1.00, pupil: 1.00 },
   crossEyed:     { target:  0.0, vergence:  1.0, lid: 0.00, brow: 0.85, pupil: 1.00 },
   wallEyed:      { target:  0.0, vergence: -1.0, lid: 0.00, brow: 0.70, pupil: 1.00 },
   // One eye holds forward while the other drifts wide. Expressible with the same
-  // two numbers — the shared target simply moves off centre. No per-eye override.
+  // two numbers — the shared target simply moves off center. No per-eye override.
   wanderingEye:  { target:  0.5, vergence: -0.5, lid: 0.00, brow: 0.90, pupil: 1.00 },
   bothOneWindow: { target: -0.3, vergence:  0.0, lid: 0.00, brow: 1.00, pupil: 1.00, stage: 'crowdLeft' },
   lockOn:        { target:  0.0, vergence:  0.0, lid: 0.00, brow: 1.70, pupil: 1.20 },

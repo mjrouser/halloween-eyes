@@ -16,7 +16,7 @@
 
 ## Global Constraints
 
-- **No `Math.random()` anywhere in show logic.** Both windows compute each frame independently; a single random call desynchronises them. Enforced by a lint step in CI and in Task 1.
+- **No `Math.random()` anywhere in show logic.** Both windows compute each frame independently; a single random call desynchronizes them. Enforced by a lint step in CI and in Task 1.
 - **Both eyes share one timeline.** Vertebrate eyes are yoked. Implement as one shared gaze target plus a vergence offset — never two independent eyes. (Spec §4.4)
 - **Geometry is derived from a single `side` parameter**, never hand-written per eye. Brow polygon, contact-shadow gradient direction and glint position all mirror off that one value. (Spec §4.7)
 - **Foreshortening is derived, not chosen:** `sqrt(1 - (x/R)^2)`. At the project's travel ratio of 0.41 that is 0.912. Do not hand-pick this value. (Spec §5)
@@ -231,7 +231,7 @@ Create `tools/check-no-random.sh`:
 ```bash
 #!/usr/bin/env bash
 # Fails if Math.random() appears in show logic.
-# Both windows compute the show independently; one random call desynchronises them.
+# Both windows compute the show independently; one random call desynchronizes them.
 set -euo pipefail
 
 HITS=$(grep -rn 'Math\.random' public/js/ || true)
@@ -302,7 +302,7 @@ export const PALETTES = {
     sclera: ['#F2FBCF', '#C3E07A', '#6B9B34'],
     iris:   ['#7BA83A', '#48701E', '#1B3A0A'],
     pupil: '#080F04', glint: '#FBFFE8', glintOpacity: 0.5, halo: '#9FD84A',
-    // A cat's eye has a vertical slit — that, not the colour alone,
+    // A cat's eye has a vertical slit — that, not the color alone,
     // is what turns a green eye into a cat.
     pupilOverride: 'slit'
   }
@@ -351,7 +351,7 @@ test('the brow sits lower on the inner edge of each eye', () => {
   assert.ok(R.brow.yLeft > R.brow.yRight, 'right eye should scowl inward (leftward)');
 });
 
-test('glints mirror about the eye centre', () => {
+test('glints mirror about the eye center', () => {
   const L = eyeGeometry('amber', 'L');
   const R = eyeGeometry('amber', 'R');
   near(L.glint.x - BASE.cx, BASE.cx - R.glint.x);
@@ -595,7 +595,7 @@ export function createEyeSvg(geom, palette, idPrefix) {
   svg.appendChild(defs);
 
   // No background rect. The container paints the black. An eye carrying its own
-  // opaque canvas would drag a rectangle over its neighbour when the two overlap.
+  // opaque canvas would drag a rectangle over its neighbor when the two overlap.
   if (geom.halo) {
     svg.appendChild(el('ellipse', {
       cx: geom.cx, cy: geom.cy, rx: geom.rx * 1.55, ry: geom.ry * 1.55, fill: `url(#ha-${p})`
@@ -845,7 +845,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```js
 // A pose is WHERE things point. A motion profile is HOW it gets there.
 // These are separate tables on purpose: a snap and a drift can target the same
-// pose and read as completely different behaviours.
+// pose and read as completely different behaviors.
 //
 // Gaze is modelled as one shared target plus a vergence offset:
 //     eyeL = target + vergence
@@ -855,14 +855,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 /**
  * target/vergence/lid/brow/pupil. `target: null` means "use the idle scan value".
- * `stage` names an optional stage-position behaviour.
+ * `stage` names an optional stage-position behavior.
  */
 export const POSES = {
   idle:          { target: null, vergence:  0.0, lid: 0.00, brow: 1.00, pupil: 1.00 },
   crossEyed:     { target:  0.0, vergence:  1.0, lid: 0.00, brow: 0.85, pupil: 1.00 },
   wallEyed:      { target:  0.0, vergence: -1.0, lid: 0.00, brow: 0.70, pupil: 1.00 },
   // One eye holds forward while the other drifts wide. Expressible with the same
-  // two numbers — the shared target simply moves off centre. No per-eye override.
+  // two numbers — the shared target simply moves off center. No per-eye override.
   wanderingEye:  { target:  0.5, vergence: -0.5, lid: 0.00, brow: 0.90, pupil: 1.00 },
   bothOneWindow: { target: -0.3, vergence:  0.0, lid: 0.00, brow: 1.00, pupil: 1.00, stage: 'crowdLeft' },
   lockOn:        { target:  0.0, vergence:  0.0, lid: 0.00, brow: 1.70, pupil: 1.20 },
@@ -2158,7 +2158,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
     <button data-key="shape" data-value="ember">Ember</button>
   </div></fieldset>
 
-  <fieldset><legend>Colour</legend><div class="row">
+  <fieldset><legend>Color</legend><div class="row">
     <button data-key="palette" data-value="amber">Amber</button>
     <button data-key="palette" data-value="green">Cat green</button>
   </div></fieldset>

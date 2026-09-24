@@ -28,7 +28,7 @@ Success is judged from the street at night, not from the room.
   **unproven, and toggleable** (§4.8), since it may simply read as the display getting tired.
 - Unattended operation: starts at dusk, stops at bedtime, survives a crash.
 - Two shapes and two palettes (§4.7), **switchable at runtime from a phone** (§4.8), along with
-  the energy drift and the crowd-in behaviour.
+  the energy drift and the crowd-in behavior.
 
 ### Explicitly out of scope
 
@@ -75,16 +75,16 @@ the VA sibling, near-identical name, easy to buy by mistake).
 **Why IPS over the VA sibling.** VA offers ~4000:1 against IPS's 1300:1, and a darker black
 genuinely matters here — it is what stops the panel reading as a lit rectangle. But VA's
 contrast advantage is largest *on-axis* and decays off-axis: its blacks lift and gamma shifts
-exactly where the deep black would be worth having. With the window centre ~15 ft up, the
+exactly where the deep black would be worth having. With the window center ~15 ft up, the
 audience spans roughly **14° off-axis from the street (40 ft), 27° halfway up the walk, and
 45° at the door**. VA degrades visibly past ~30°, so the people closest to the house — the
 actual trick-or-treaters — would get the worst version. IPS's 178°/178° holds instead.
 
 This argument depends on running **without** a diffuser (§12). With a diffuser the diffuser
-becomes the emitting surface, off-axis behaviour is largely neutralised, and VA's deeper
+becomes the emitting surface, off-axis behavior is largely neutralized, and VA's deeper
 black would win. Since running bare is now a supported mode, IPS is the correct choice.
 
-**What a matched pair eliminates:** per-viewport colour calibration (§4.2), the geometric
+**What a matched pair eliminates:** per-viewport color calibration (§4.2), the geometric
 scale factor as a live concern (§4.2), and the question of which monitor goes in which window
 (§13) — with two identical units it is arbitrary. Both units were ordered as quantity 2 of a
 single listing, which is what actually guarantees the same SKU and panel revision.
@@ -119,13 +119,13 @@ That separation is what makes the gags cheap. Cross-eyed is aiming two gaze valu
 other. Both-eyes-in-one-window is moving two stage positions. Nothing special-cases the
 window boundary, so an eye can be partly clipped mid-travel.
 
-Stage coordinates are normalised (0..1) and mapped to pixels per viewport, so the model is
+Stage coordinates are normalized (0..1) and mapped to pixels per viewport, so the model is
 independent of panel resolution.
 
 #### The gap is a timing parameter, not a measurement
 
 Measured geometry (§3): 18.74″ of screen, and 48.26″ between active areas once the screens
-are centred in the 23″ openings (2.13″ of window either side of the image, plus the 44″
+are centered in the 23″ openings (2.13″ of window either side of the image, plus the 44″
 between openings). **The wall is 2.58× wider than a screen.** To scale that is a stage
 85.74″ wide — 8,788 px at 102.5 PPI — of which only 2 × 1,920 px is ever visible:
 
@@ -193,9 +193,9 @@ maps to the same physical size on each and no scale correction is needed. The sc
 stays in the config as a named value set to 1.0 rather than being removed — it costs nothing
 and it is the thing that would need changing if a panel is ever swapped for a different size.
 
-**Colour calibration is largely eliminated** by the matched-pair purchase (§3). Two units of
+**Color calibration is largely eliminated** by the matched-pair purchase (§3). Two units of
 the same SKU, same revision, bought in one order, render the same amber the same way and fall
-off identically off-axis. The per-viewport colour offset stays in the config — brightness,
+off identically off-axis. The per-viewport color offset stays in the config — brightness,
 gamma, saturation, defaulting to zero on both — but it exists as an escape hatch, not as a
 task.
 
@@ -206,7 +206,7 @@ carry:
    Identical panels at identical settings need no further hardware matching.
 2. **Look at them side by side, lit, at night, from the street.** If they match, done.
 3. **Only if they visibly differ** — a panel-lottery outlier, a backlight that drifted — nudge
-   one viewport's colour offset until they agree. Software only; do not start adjusting
+   one viewport's color offset until they agree. Software only; do not start adjusting
    backlights, because with identical panels a difference in the OSD is more likely to be the
    cause than the cure.
 
@@ -240,7 +240,7 @@ This is load-bearing, not incidental:
 - **A future two-Pi split is nearly free** — same code, add NTP.
 
 **The one discipline this imposes:** no `Math.random()` anywhere in show logic. This must be
-enforced by a lint rule, because a single stray call desynchronises the two windows in a way
+enforced by a lint rule, because a single stray call desynchronizes the two windows in a way
 that is easy to miss on a desk and obvious from the street.
 
 ### 4.4 Poses vs. motion profiles
@@ -259,7 +259,7 @@ A **pose** is where things point — five numbers per eye:
 
 A **motion profile** is how it gets there — attack duration, easing, hold duration, release
 duration. A snap-and-hold and a slow drift can target the *same* pose and read as completely
-different behaviours.
+different behaviors.
 
 #### The eyes are yoked
 
@@ -292,7 +292,7 @@ that happen to agree most of the time. The latter will drift.
 | **Wandering eye** (one forward, one wide) | **+k/2** | **−k/2** |
 
 The wandering eye needs no new mechanism — it is the same two numbers with the shared target
-moved off centre. Worth knowing before anyone reaches for a per-eye override, which would
+moved off center. Worth knowing before anyone reaches for a per-eye override, which would
 reintroduce exactly the drift this section exists to prevent.
 
 **Wandering eye drifts out slowly and snaps back.** This is a motion-profile decision rather
@@ -310,7 +310,7 @@ Timings are starting points to tune on the house, not measurements.
 
 #### The rule for assigning motion profiles
 
-The asymmetry above is not a one-off. It generalises, and the general form is better than
+The asymmetry above is not a one-off. It generalizes, and the general form is better than
 tuning eight poses by taste:
 
 > **The effortful direction is fast. The passive direction is slow.**
@@ -359,7 +359,7 @@ nothing and means the install is not the same at both ends of the night.
 
 ### 4.7 Theme config
 
-Style is data, not code. The renderer never hardcodes a colour or a brow coordinate. The theme
+Style is data, not code. The renderer never hardcodes a color or a brow coordinate. The theme
 holds a palette plus shape parameters, and the two are **independent axes** — any shape works
 in any palette.
 
@@ -418,7 +418,7 @@ possible. Determinism is preserved rather than worked around.
 **What earns a toggle, and what does not.** A toggle is for a decision that genuinely cannot
 be made in advance and is better judged live on the house. All four qualify: the two style
 axes were deferred deliberately, the energy drift (§4.6) is unproven and may read as the
-display simply getting tired, and the crowd behaviour (§4.1) has two plausible readings with
+display simply getting tired, and the crowd behavior (§4.1) has two plausible readings with
 no way to pick between them from a desk.
 
 That list should stop growing. The failure mode is a control page that turns into a settings
@@ -454,7 +454,7 @@ matters:
 - A failed poll is a **no-op**, never an error state. Network down, server dead, 404,
   malformed JSON: keep the current style, retry on the next tick, do not throw, never blank
   the screen.
-- An unrecognised `shape` or `palette` value is **ignored entirely** — keep the current style
+- An unrecognized `shape` or `palette` value is **ignored entirely** — keep the current style
   rather than rendering nothing.
 - A missing `effectiveAt` is treated as "now".
 - WiFi loss disables the toggle and nothing else. The eyes keep running.
@@ -470,7 +470,7 @@ request body directly.
 #### Build timing
 
 Build this **last**, in week 6, after the show itself works. It is additive by design and must
-not be able to destabilise anything in the run-up to freeze.
+not be able to destabilize anything in the run-up to freeze.
 
 ## 5. Visual spec — the eye
 
@@ -513,7 +513,7 @@ Replaced with:
   perpendicular to the brow line**, so it is a consistent width along the whole edge. (A
   bounding-box gradient on a slanted polygon leans — that was the earlier bug.)
 - **Socket ambient** — the eye recessed in a skull. Broad and weak: 18% at the top of the
-  eye, fading to nothing by the centre line. ~4% at the top of the pupil, zero at its centre.
+  eye, fading to nothing by the center line. ~4% at the top of the pupil, zero at its center.
 
 Neither layer reaches the pupil.
 
@@ -645,7 +645,7 @@ Implemented as cron or a systemd timer starting and stopping the service. A smar
 monitors is a reasonable low-tech alternative and has the advantage of cutting the panels'
 backlight rather than merely displaying black.
 
-Neighbour constraint checked: no windows directly opposite, so the 23:30 shutdown is a
+Neighbor constraint checked: no windows directly opposite, so the 23:30 shutdown is a
 courtesy rather than a requirement.
 
 #### Runtime implications of a month-long run
@@ -760,7 +760,7 @@ Oct 10 the real renderer exists, so the throwaway step disappears.
 
 #### Cable spec — the shell width is what matters
 
-The Pi 5's two micro-HDMI ports sit roughly 13–15 mm apart centre to centre (approximate —
+The Pi 5's two micro-HDMI ports sit roughly 13–15 mm apart center to center (approximate —
 not confirmed against an authoritative drawing), and the receptacle itself is 6.5 mm wide. So
 the constraint is the **width of the shell moulded around the plug**: it needs to be ≤ ~12 mm,
 ideally ~10 mm, or the two plugs foul each other.
@@ -769,17 +769,17 @@ ideally ~10 mm, or the two plugs foul each other.
   bulky in both directions; two will not fit side by side, and it costs more than a direct
   cable. A single micro-HDMI (type D) → HDMI (type A) cable is the correct part.
 - Skip right-angle connectors unless the bend direction is confirmed — the wrong orientation
-  points into the neighbouring port.
+  points into the neighboring port.
 - **Shortcut:** buy cables explicitly sold "for Raspberry Pi 4 / Pi 5". The slim shell is the
   entire reason those SKUs exist. The official Raspberry Pi cable is the safest single answer.
 - **Count three connectors on that edge, not two.** USB-C power sits next to HDMI0, so a
   chunky third-party power supply can conflict with the HDMI plug beside it. The official Pi 5
   supply is slim.
 
-**Length: 2 m.** With the Pi between the windows and panels centred in openings 44″ apart, each
+**Length: 2 m.** With the Pi between the windows and panels centered in openings 44″ apart, each
 run is ~33.5″ horizontally before any vertical rise, routing or service loop — call it 45–55″
 in practice. A 1 m cable is 39.4″ and does not reach. If the Pi ends up on one of the two
-tables rather than dead centre, one run approaches 70″. Slack coils harmlessly.
+tables rather than dead center, one run approaches 70″. Slack coils harmlessly.
 
 ## 12. Physical and optical notes
 
@@ -793,7 +793,7 @@ The code is the easy half. This part is what makes or breaks it.
 - **Running bare changes two things.** The bezel and the backlight-leak rectangle become
   visible up close, and the window glass becomes the optical problem instead of the diffuser:
   a lit panel behind glass at night reflects in it, and double-pane glass produces two offset
-  ghosts. Pushing the panel close to the glass minimises the offset. The panels' anti-glare
+  ghosts. Pushing the panel close to the glass minimizes the offset. The panels' anti-glare
   coating handles room light but not this.
 - **Trim masking is off the table, and matters less than expected.** The earlier plan was to
   set the panel *behind* the opening so the trim crops the bezel. The 1.25″ sill kills it:
@@ -851,7 +851,7 @@ an eye peering over the windowsill reads more naturally than one floating mid-wi
 Two shop-built stands from cheap lumber, rather than hunting for furniture at a specific
 height.
 
-**The requirement that decides it: both eyes must sit at exactly the same height.** A colour
+**The requirement that decides it: both eyes must sit at exactly the same height.** A color
 mismatch between panels is subtle; a height mismatch is not. A pair of eyes reads as belonging
 to one creature partly through their alignment — offset them an inch and they stop being a
 face and become two props in two windows. Two bought tables both described as "about 26
@@ -886,7 +886,7 @@ reversible; a leg cut an inch short is not.
   against 250. At 40 ft it is negligible; at the door it is visible. Diffusion does not remove
   it, it spreads it into a dim glow across the whole opening, which is arguably worse. Trim
   masking removes it properly. This is a property of the panel, not of the artwork, and it
-  does not favour any style over another.
+  does not favor any style over another.
 - **Check sightlines from the actual street position at night**, not from inside the room.
 - Monitors want tilting downward; viewers are on the ground looking up.
 - Blinds must stay up, and condensation on the glass is worth a look on a cold night.
@@ -909,7 +909,7 @@ measurement (§4.1).*
 *Resolved 2026-09-19: the monitor purchase — two MSI PRO MP225 as a matched IPS pair (§3);
 cabling reduced to two micro-HDMI cables with no adapters (§3, §11); running without a
 diffuser is a supported mode rather than a compromise (§12); and, following from the matched
-pair, colour calibration (§4.2) and the question of which monitor goes in which window both
+pair, color calibration (§4.2) and the question of which monitor goes in which window both
 disappear.*
 
 *Resolved 2026-09-19: window opening 23″ × 48″ with a 1.25″ sill (§3). The sill cannot support

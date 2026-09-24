@@ -41,7 +41,7 @@ test('an eye carries no opaque background rect', () => {
   // The only full-width solid rects are the two lids, which start at zero height.
   for (const r of opaqueFullBleed) {
     assert.equal(r.getAttribute('height'), '0',
-      'a full-bleed opaque rect would drag a rectangle over the neighbouring eye');
+      'a full-bleed opaque rect would drag a rectangle over the neighboring eye');
   }
 });
 
@@ -71,11 +71,11 @@ test('updateEye applies derived foreshortening, not a hand-picked squash', () =>
     `scale ${scaleX} should equal sqrt(1 - 0.41^2) ~= 0.9121`);
 });
 
-test('gaze translates the mover, and gaze 0 is centred', () => {
+test('gaze translates the mover, and gaze 0 is centered', () => {
   const { svg, geom } = build();
   const txOf = () => Number(/translate\(([-\d.]+)/.exec(svg._refs.mover.getAttribute('transform'))[1]);
   updateEye(svg._refs, { gaze: 0, lid: 0, brow: 1, pupil: 1, pupilShape: 'round' });
-  assert.ok(Math.abs(txOf() - geom.cx) < 1e-6, 'gaze 0 should sit at centre');
+  assert.ok(Math.abs(txOf() - geom.cx) < 1e-6, 'gaze 0 should sit at center');
   updateEye(svg._refs, { gaze: 1, lid: 0, brow: 1, pupil: 1, pupilShape: 'round' });
   assert.ok(Math.abs(txOf() - (geom.cx + geom.gazeMaxPx)) < 1e-2, 'gaze 1 is full travel');
 });

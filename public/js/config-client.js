@@ -14,7 +14,7 @@ const POLL_MS = 2000;
 // Values the page can actually render. Anything else is dropped here, before it
 // reaches buildEyes() — an unknown palette there would blank the screen, which
 // breaks "the show must never depend on this". The server validates too; this
-// is the last line of defence, not the only one.
+// is the last line of defense, not the only one.
 const ALLOWED = {
   shape: Object.keys(SHAPES),
   palette: Object.keys(PALETTES),

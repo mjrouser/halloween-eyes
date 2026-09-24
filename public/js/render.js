@@ -71,7 +71,7 @@ export function createEyeSvg(geom, palette, idPrefix) {
   svg.appendChild(defs);
 
   // No background rect. The container paints the black. An eye carrying its own
-  // opaque canvas would drag a rectangle over its neighbour when the two overlap.
+  // opaque canvas would drag a rectangle over its neighbor when the two overlap.
   if (geom.halo) {
     svg.appendChild(el('ellipse', {
       cx: geom.cx, cy: geom.cy, rx: geom.rx * 1.55, ry: geom.ry * 1.55, fill: `url(#ha-${p})`

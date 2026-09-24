@@ -15,7 +15,7 @@ Task 8 of [PLAN.md](PLAN.md). Run 2026-09-23 on the bench, before any install.
 ## Answers
 
 **1. Can each window be placed on a chosen output? Which rung worked?**
-Yes. Neither planned rung was needed: Chromium running under **XWayland** honours
+Yes. Neither planned rung was needed: Chromium running under **XWayland** honors
 `--window-position`. Switching the whole session to X11 (rung 2) is unnecessary.
 Working launch, one line per window:
 
