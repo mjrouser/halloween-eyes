@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+  Phone control page for the Halloween eyes.
+
+  Four toggles (shape, colour, crowding, energy drift) that POST to /config on
+  the show server. The server schedules the change a few seconds ahead so both
+  windows switch on the same frame. The show never depends on this page — if it
+  can't reach the Pi, the eyes keep running on their last config.
+
+  Open from a phone on the same LAN:  http://<pi-ip>:8080/control.html
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eyes Control</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    background: #0B0A0F; color: #E9E4DA;
+    font: 16px/1.5 system-ui, -apple-system, sans-serif;
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  p.sub { margin: 0 0 28px; color: #7C7490; font-size: .9rem; }
+  fieldset { border: 0; padding: 0; margin: 0 0 26px; }
+  legend {
+    font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    color: #7C7490; margin-bottom: 10px;
+  }
+  .row { display: flex; gap: 10px; }
+  button {
+    flex: 1; padding: 18px 12px; font: inherit; font-weight: 600;
+    background: #1B1726; color: #E9E4DA;
+    border: 1px solid #2E2839; border-radius: 6px; cursor: pointer;
+  }
+  button[aria-pressed="true"] { background: #F0A72C; color: #161018; border-color: #F0A72C; }
+  #status { min-height: 1.5em; font-size: .88rem; color: #7C7490; }
+</style>
+</head>
+<body>
+  <h1>Halloween Eyes</h1>
+  <p class="sub">Changes apply to both windows together, about five seconds after you tap.</p>
+
+  <fieldset><legend>Shape</legend><div class="row">
+    <button data-key="shape" data-value="amber">Amber</button>
+    <button data-key="shape" data-value="ember">Ember</button>
+  </div></fieldset>
+
+  <fieldset><legend>Colour</legend><div class="row">
+    <button data-key="palette" data-value="amber">Amber</button>
+    <button data-key="palette" data-value="green">Cat green</button>
+  </div></fieldset>
+
+  <fieldset><legend>Crowding</legend><div class="row">
+    <button data-key="crowdStyle" data-value="shrink">Shrink</button>
+    <button data-key="crowdStyle" data-value="squash">Squash</button>
+  </div></fieldset>
+
+  <fieldset><legend>Energy drift</legend><div class="row">
+    <button data-key="energyDrift" data-value="true">On</button>
+    <button data-key="energyDrift" data-value="false">Off</button>
+  </div></fieldset>
+
+  <div id="status" role="status"></div>
+
+<script type="module">
+const UNREACHABLE = 'Cannot reach the Pi. The eyes keep running regardless.';
+
+const statusEl = document.getElementById('status');
+const buttons = [...document.querySelectorAll('button[data-key]')];
+
+// data-value attributes are strings; energyDrift is a real boolean on the server,
+// which compares type as well as value.
+function parse(value) {
+  return value === 'true' ? true : value === 'false' ? false : value;
+}
+
+function paint(config) {
+  for (const b of buttons) {
+    b.setAttribute('aria-pressed', String(config[b.dataset.key] === parse(b.dataset.value)));
+  }
+}
+
+async function refresh() {
+  try {
+    const response = await fetch(`config.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) return;
+    paint(await response.json());
+    // Clear a stale outage message once the Pi answers again.
+    if (statusEl.textContent === UNREACHABLE) statusEl.textContent = '';
+  } catch {
+    statusEl.textContent = UNREACHABLE;
+  }
+}
+
+for (const b of buttons) {
+  b.addEventListener('click', async () => {
+    const payload = { [b.dataset.key]: parse(b.dataset.value) };
+    statusEl.textContent = 'Sending…';
+    try {
+      const response = await fetch('config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) { statusEl.textContent = `Rejected: ${data.error}`; return; }
+      paint(data);
+      // Phone and Pi clocks may differ slightly; this is a hint, not a countdown.
+      const seconds = Math.max(0, Math.round((data.effectiveAt - Date.now()) / 1000));
+      statusEl.textContent = `Changing in ${seconds}s.`;
+    } catch {
+      statusEl.textContent = 'Could not reach the Pi.';
+    }
+  });
+}
+
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>
