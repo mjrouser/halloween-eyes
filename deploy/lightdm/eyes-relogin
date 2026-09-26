@@ -1,0 +1,18 @@
+#!/bin/sh
+# eyes-relogin — LightDM session-cleanup-script (runs as root when a session ends).
+#
+# Restarts LightDM a few seconds later so autologin fires again and the show
+# comes back. The restart is handed to a detached systemd timer because this
+# script runs inside LightDM and must not restart it directly.
+#
+# Does nothing during shutdown or reboot.
+set -e
+
+state="$(systemctl is-system-running 2>/dev/null || true)"
+if [ "$state" = "stopping" ]; then
+  exit 0
+fi
+
+logger -t eyes-relogin "session ended; restarting lightdm in 5s"
+systemd-run --quiet --on-active=5 --unit=eyes-relogin-restart \
+  systemctl restart lightdm.service || true
