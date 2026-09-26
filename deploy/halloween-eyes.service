@@ -1,0 +1,20 @@
+# halloween-eyes.service — systemd USER unit that keeps the show running.
+#
+# Installed to ~/.config/systemd/user/ by deploy/install-autostart.sh.
+# Deliberately NOT enabled at boot: cron (deploy/crontab.example) starts and
+# stops it, so a 3am reboot leaves the windows dark.
+#   Start now:  systemctl --user start halloween-eyes
+#   Stop now:   systemctl --user stop halloween-eyes
+#   Logs:       journalctl --user -u halloween-eyes -f
+[Unit]
+Description=Halloween eye windows
+# Never give up retrying. While the desktop is restarting (monitor power
+# cycle, relogin) the launch fails every few seconds until it is back.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=APP_DIR=%h/halloween-eyes
+ExecStart=%h/halloween-eyes/deploy/launch-windows.sh
+Restart=always
+RestartSec=5

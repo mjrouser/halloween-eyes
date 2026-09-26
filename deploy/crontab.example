@@ -1,0 +1,8 @@
+# Halloween eyes: on at 17:45, off at 23:30, nightly through October.
+#
+# Time-gated, never start-on-boot: a reboot at 3am must leave the windows dark.
+# The service is NOT enabled at boot — cron alone decides when it runs.
+# cron has no session environment, so systemctl --user needs XDG_RUNTIME_DIR.
+XDG_RUNTIME_DIR=/run/user/1000
+45 17 * 10 * systemctl --user start halloween-eyes.service
+30 23 * 10 * systemctl --user stop  halloween-eyes.service
