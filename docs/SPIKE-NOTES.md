@@ -36,8 +36,19 @@ Every flag there is load-bearing:
   appears over the show. On an unattended boot that would mean a blocked window.
 
 **2. Does it survive a reboot (five power cycles)?**
-**Not yet tested.** Needs autostart, so it moves into Task 12 and must be done there
-before Task 12 is called complete.
+**Yes — 5 of 5 passed (2026-09-28, Task 12 step 5).** Each reboot checked: autologin
+reached the desktop with no greeter; both outputs enabled at `0,0` / `1920,0`; the show
+service stayed `inactive` at boot (by design — cron starts it); after
+`systemctl --user start halloween-eyes`, both windows came up and a `grim` screenshot of
+each output showed the correct eye (brows slope inward, gaze yoked), with no dialogs.
+
+| Reboot | Boot time | Result |
+|---|---|---|
+| 1 | 21:44:22 | pass |
+| 2 | 21:47:10 | pass |
+| 3 | 21:49:15 | pass |
+| 4 | 21:50:42 | pass |
+| 5 | 21:52:05 | pass |
 
 **3. Does `window.screenX` report the window's position?**
 Yes. With `?setup`, the two windows labelled themselves LEFT and RIGHT correctly
@@ -59,6 +70,14 @@ case for the native renderer (spec approach 3).
 - `$XDG_SESSION_TYPE` is empty over SSH. Detect the compositor with
   `ps -e | grep -E "labwc|wayfire|Xorg"` instead.
 - Desktop tools over SSH need `WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/$(id -u)`.
+- **Powering the monitors off and on** broke the show two different ways, both now fixed:
+  labwc exited and the Pi sat at the login screen (fixed by `deploy/lightdm/`), and
+  both outputs stayed disabled — "HDMI no signal" — because kanshi's config was empty
+  (fixed by `deploy/kanshi/config`). Verified: monitors off and on, eyes return.
+- Chromium picks native Wayland by itself when `WAYLAND_DISPLAY` is set, and native
+  Wayland ignores `--window-position`. `launch-windows.sh` forces `--ozone-platform=x11`.
+- `grim -o HDMI-A-1 file.png` screenshots one monitor over SSH — a remote way to check
+  which eye is on which screen.
 
 ## Still open
 
