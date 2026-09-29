@@ -1,0 +1,12 @@
+# kanshi output layout for the show — installed to ~/.config/kanshi/config
+# by deploy/install-autostart.sh.
+#
+# Why: with an empty kanshi config, powering the monitors off and on left both
+# outputs disabled ("HDMI no signal") until re-enabled by hand (2026-09-28).
+# kanshi applies this profile whenever both monitors are connected, so they
+# come back on at the positions launch-windows.sh assumes: left at x=0,
+# right at x=1920.
+profile eyes {
+  output HDMI-A-1 enable mode 1920x1080@60 position 0,0
+  output HDMI-A-2 enable mode 1920x1080@60 position 1920,0
+}

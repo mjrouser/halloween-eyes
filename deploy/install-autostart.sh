@@ -16,6 +16,12 @@ mkdir -p ~/.config/systemd/user
 cp "$DEPLOY/halloween-eyes.service" ~/.config/systemd/user/
 systemctl --user daemon-reload
 
+# Monitor layout, so outputs come back on after a monitor power cycle.
+# SIGHUP makes a running kanshi reload its config.
+mkdir -p ~/.config/kanshi
+cp "$DEPLOY/kanshi/config" ~/.config/kanshi/config
+pkill -HUP -x kanshi || true
+
 # eyesadmin's crontab holds only the show schedule, so replace it whole.
 crontab "$DEPLOY/crontab.example"
 
