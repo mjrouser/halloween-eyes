@@ -98,6 +98,15 @@ def make_server(root: Path, config_path: Path, port: int, bind: str) -> Threadin
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(root), **kwargs)
 
+        # Static files: "no-cache" means Chromium must check with us before reusing
+        # its copy. Without it, a restarted window can keep running cached OLD JS
+        # after a deploy. Revalidating against localhost costs nothing.
+        cache_control = "no-cache"
+
+        def end_headers(self):
+            self.send_header("Cache-Control", self.cache_control)
+            super().end_headers()
+
         def log_message(self, fmt, *args):
             logger.debug("%s", fmt % args)
 
@@ -106,7 +115,7 @@ def make_server(root: Path, config_path: Path, port: int, bind: str) -> Threadin
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            self.cache_control = "no-store"  # config must never come from a cache
             self.end_headers()
             self.wfile.write(body)
 

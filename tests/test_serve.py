@@ -66,6 +66,20 @@ def test_serves_static_files(running):
     assert b"eyes" in body
 
 
+def test_static_files_are_revalidated_every_load(running):
+    # Without this, Chromium caches the show's JS heuristically and a restarted
+    # window keeps running the OLD code after a deploy (seen on the Pi 2026-09-29).
+    base, _ = running
+    with urllib.request.urlopen(f"{base}/index.html", timeout=5) as response:
+        assert response.headers["Cache-Control"] == "no-cache"
+
+
+def test_config_is_never_cached(running):
+    base, _ = running
+    with urllib.request.urlopen(f"{base}/config.json", timeout=5) as response:
+        assert response.headers.get_all("Cache-Control") == ["no-store"]
+
+
 def test_serves_config(running):
     base, _ = running
     status, body = get(f"{base}/config.json")

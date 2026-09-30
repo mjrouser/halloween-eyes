@@ -67,6 +67,23 @@ outputs at once (`grim ... & grim ... & wait`): sequential grabs can straddle a 
 make the eyes look unyoked when they are not. Boot decisions log to the journal:
 `journalctl -t halloween-eyes -b`.
 
+**Crowd gag fixed (2026-09-29).** "Both eyes in one window" used hand-picked stage offsets
+(`0.42`, and `x3.2` for the right eye) plus a scale taken from each eye's own offset. On the
+real screens the right eye stopped half off the edge, the left eye overshot the other edge,
+a ~950px gap sat between them, and the two eyes were different sizes (0.77 vs 0.48). The
+director cannot know the gap in pixels, so it now emits only a shared `crowd` amount (0..1)
+and `stage.crowdPlacement()` derives both positions and ONE shared scale (0.5) from the stage
+geometry. Checked on the Pi: fully crowded, both eyes fit side by side in the left window
+(~220-912px and ~992-1680px, predicted 223-925 / 995-1697), right window dark; mid-transit, the
+right eye exits its window without appearing in the other.
+
+**Deploys did not reach the screens (found 2026-09-29).** The server sent no `Cache-Control`
+on static files, so Chromium reused its heuristically cached OLD JS after a restart: the
+first check of the crowd fix showed the old layout while the server was serving the new
+files. Static files now carry `Cache-Control: no-cache` (revalidate each load; free on
+localhost). Caches filled before this change had to be cleared once
+(`/tmp/eyes-{left,right}/Default/{Cache,Code Cache}`, with the show stopped).
+
 **3. Does `window.screenX` report the window's position?**
 Yes. With `?setup`, the two windows labelled themselves LEFT and RIGHT correctly
 from `screenX` alone. Self-detecting viewports (Task 7) work under XWayland, so launch
