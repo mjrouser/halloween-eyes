@@ -3,6 +3,8 @@
 # Installed to ~/.config/systemd/user/ by deploy/install-autostart.sh.
 # Deliberately NOT enabled at boot: cron (deploy/crontab.example) starts and
 # stops it, so a 3am reboot leaves the windows dark.
+# After a reboot inside show hours, cron's @reboot line restarts it
+# (deploy/start-if-show-hours.sh).
 #   Start now:  systemctl --user start halloween-eyes
 #   Stop now:   systemctl --user stop halloween-eyes
 #   Logs:       journalctl --user -u halloween-eyes -f

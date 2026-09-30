@@ -50,6 +50,23 @@ each output showed the correct eye (brows slope inward, gaze yoked), with no dia
 | 4 | 21:50:42 | pass |
 | 5 | 21:52:05 | pass |
 
+**Reboot during show hours (2026-09-29).** A reboot at 3am must stay dark, but a power blip
+at 19:00 on Oct 31 used to leave the eyes dark until 17:45 the next day. Now an `@reboot`
+cron line runs `deploy/start-if-show-hours.sh`, which starts the service only inside the
+window. The window is read from the crontab's own start/stop lines, so the two cannot drift.
+Both cases tested with real reboots:
+
+| Boot time | Faked now | Boot decision | Service after boot |
+|---|---|---|---|
+| 19:58:16 | none (Sep 29) | `skip` | `inactive` |
+| 20:01:40 | `SHOW_NOW="2026-10-31 19:00"` | `start` | `active` (one retry while the desktop came up) |
+
+The in-window case used a temporary crontab with `SHOW_NOW` on the `@reboot` line, since
+restored. Simultaneous `grim` pairs showed brows scowling inward and gaze yoked. Grab both
+outputs at once (`grim ... & grim ... & wait`): sequential grabs can straddle a saccade and
+make the eyes look unyoked when they are not. Boot decisions log to the journal:
+`journalctl -t halloween-eyes -b`.
+
 **3. Does `window.screenX` report the window's position?**
 Yes. With `?setup`, the two windows labelled themselves LEFT and RIGHT correctly
 from `screenX` alone. Self-detecting viewports (Task 7) work under XWayland, so launch

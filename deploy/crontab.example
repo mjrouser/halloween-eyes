@@ -3,6 +3,12 @@
 # Time-gated, never start-on-boot: a reboot at 3am must leave the windows dark.
 # The service is NOT enabled at boot — cron alone decides when it runs.
 # cron has no session environment, so systemctl --user needs XDG_RUNTIME_DIR.
+#
+# The start and stop lines below are the ONE definition of the show window:
+# start-if-show-hours.sh reads them at boot, so a reboot inside the window
+# (a power blip at 19:00) restarts the show and a reboot outside it does not.
+# Keep their shape: "M H * MONTH * systemctl --user start|stop halloween-eyes.service".
 XDG_RUNTIME_DIR=/run/user/1000
 45 17 * 10 * systemctl --user start halloween-eyes.service
 30 23 * 10 * systemctl --user stop  halloween-eyes.service
+@reboot bash $HOME/halloween-eyes/deploy/start-if-show-hours.sh 2>&1 | logger -t halloween-eyes

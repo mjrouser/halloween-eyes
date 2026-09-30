@@ -26,4 +26,4 @@ pkill -HUP -x kanshi || true
 crontab "$DEPLOY/crontab.example"
 
 echo "Installed. Start the show now with: systemctl --user start halloween-eyes"
-echo "Enabled at boot (expect 'static': no boot hook): $(systemctl --user is-enabled halloween-eyes.service || true)"
+echo "Enabled at boot (expect 'static': cron's @reboot check starts it only in show hours): $(systemctl --user is-enabled halloween-eyes.service || true)"

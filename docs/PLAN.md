@@ -2346,6 +2346,11 @@ phase — supervision alone is sufficient, with no state to restore.
 30 23 * 10 * systemctl --user stop  halloween-eyes.service
 ```
 
+> **Amended 2026-09-29:** a reboot *inside* the window now restarts the show. An `@reboot`
+> line runs `deploy/start-if-show-hours.sh`, which reads the window from these two lines
+> and starts the service only if now falls inside it. A 3am reboot still stays dark.
+> See `docs/SPIKE-NOTES.md`.
+
 - [ ] **Step 4: Install and verify on the Pi**
 
 ```bash
