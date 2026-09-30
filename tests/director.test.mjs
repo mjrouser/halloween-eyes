@@ -215,3 +215,18 @@ test('the run never crosses a DST transition', () => {
   assert.equal(offsetAt('2026-10-01T12:00:00Z'), offsetAt('2026-10-31T12:00:00Z'),
     'the offset must be stable across the whole October run');
 });
+
+test('crowding is one shared amount, peaking during bothOneWindow', () => {
+  // The director says only HOW crowded (0..1). Where the eyes go is stage
+  // geometry (stage.js crowdPlacement), which knows the gap; the director does not.
+  let peak = 0;
+  for (let i = 0; i < 20000; i++) {
+    const s = showState(T + i * 997, cfg);
+    assert.ok(s.crowd >= 0 && s.crowd <= 1, `crowd out of range: ${s.crowd}`);
+    if (s.poseName !== 'bothOneWindow') assert.equal(s.crowd, 0, `${s.poseName} crowded the eyes`);
+    // Crowding must not leak into the per-eye offset, which is wander only.
+    assert.equal(s.eyeL.stageOffset, s.eyeR.stageOffset, 'per-eye offsets diverged');
+    peak = Math.max(peak, s.crowd);
+  }
+  assert.ok(peak > 0.99, `bothOneWindow never fully crowded: peak ${peak}`);
+});

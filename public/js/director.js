@@ -20,7 +20,6 @@ export const DEFAULT_SHOW_CONFIG = {
   energyDrift: true,
   eveningStartHour: 17.75,  // 17:45
   eveningEndHour: 23.5,     // 23:30
-  crowdOffset: 0.42,    // stage offset applied during bothOneWindow
   // Slow positional wander, so the bright sclera does not occupy exactly the
   // same pixels for ~180 hours across the month. Both eyes share it, so they
   // never drift apart. Also stops the eyes looking bolted down.
@@ -120,7 +119,8 @@ export function showState(tMs, cfg = DEFAULT_SHOW_CONFIG) {
   const brow = rest.brow + (pose.brow - rest.brow) * amount;
   const pupil = rest.pupil + (pose.pupil - rest.pupil) * amount;
 
-  const crowd = pose.stage === 'crowdLeft' ? cfg.crowdOffset * amount : 0;
+  // How crowded, 0..1. Where the eyes go is stage geometry (stage.js), not ours.
+  const crowd = pose.stage === 'crowdLeft' ? amount : 0;
   const wander = slowWander(tMs, cfg);
 
   const clamp = (v) => Math.max(-1, Math.min(1, v));
@@ -130,16 +130,17 @@ export function showState(tMs, cfg = DEFAULT_SHOW_CONFIG) {
     poseName,
     phase,
     energy,
+    crowd,
     eyeL: {
       gaze: clamp(target + vergence),
-      stageOffset: -crowd + wander,
+      stageOffset: wander,
       lid,
       brow,
       pupil
     },
     eyeR: {
       gaze: clamp(target - vergence),
-      stageOffset: -crowd * 3.2 + wander,
+      stageOffset: wander,
       lid,
       brow,
       pupil

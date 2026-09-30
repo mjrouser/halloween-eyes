@@ -14,6 +14,17 @@
 export const MIN_GAP_EYE_WIDTHS = 1.0;
 export const DEFAULT_GAP_EYE_WIDTHS = 1.2;
 
+/**
+ * Crowding (the bothOneWindow gag): both eyes squeeze into the LEFT window.
+ * Two full-size eyes cannot share a window (each is ~73% of its width), so they
+ * compress together to ~0.5 (DESIGN.md §4.1) and sit side by side, nearly touching.
+ * Positions are derived from the stage geometry here, where the gap is known.
+ * The director only says how crowded (0..1); it cannot know the gap in pixels.
+ */
+export const CROWD_SCALE = 0.5;
+/** Space between the crowded eyes, as a fraction of one crowded eye's width. */
+export const CROWD_SPACING = 0.1;
+
 export function makeStage({ viewportW, eyeW, gapEyeWidths = DEFAULT_GAP_EYE_WIDTHS }) {
   if (!(gapEyeWidths >= MIN_GAP_EYE_WIDTHS)) {
     throw new RangeError(
@@ -37,6 +48,26 @@ export function makeStage({ viewportW, eyeW, gapEyeWidths = DEFAULT_GAP_EYE_WIDT
       const vp = viewports[which];
       if (!vp) throw new Error(`unknown viewport: ${which}`);
       return stageX - vp.x0;
+    },
+    /**
+     * Where each eye's center sits on the stage, and the one scale both share,
+     * at a crowding amount from 0 (each eye home) to 1 (both in the left window).
+     * One shared scale is the point: the eyes must compress together.
+     */
+    crowdPlacement(crowd) {
+      const u = Math.max(0, Math.min(1, crowd));
+      const scale = 1 - u * (1 - CROWD_SCALE);
+      const homeL = viewports.left.x0 + viewportW / 2;
+      const homeR = viewports.right.x0 + viewportW / 2;
+      // Crowded centers: symmetric about the left window's center.
+      const halfPitch = eyeW * CROWD_SCALE * (1 + CROWD_SPACING) / 2;
+      const endL = homeL - halfPitch;
+      const endR = homeL + halfPitch;
+      return {
+        scale,
+        L: { centerX: homeL + (endL - homeL) * u, scale },
+        R: { centerX: homeR + (endR - homeR) * u, scale }
+      };
     }
   };
 }

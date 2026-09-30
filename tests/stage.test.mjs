@@ -53,3 +53,60 @@ test('an omitted gap falls back to the default rather than throwing', () => {
   const s = makeStage({ ...cfg, gapEyeWidths: undefined });
   assert.equal(s.gapPx, cfg.eyeW * DEFAULT_GAP_EYE_WIDTHS);
 });
+
+// --- Crowding: both eyes squeeze into the left window (the bothOneWindow gag). ---
+// Layout is derived from the stage geometry, never hand-tuned: a guessed right-eye
+// offset once left that eye half off the screen with a big gap beside it.
+
+/** On-screen span of one eye, in the given viewport's local pixels. */
+function span(s, placement, which) {
+  const c = s.toViewportX(placement.centerX, which);
+  const half = s.eyeW * placement.scale / 2;
+  return { a: c - half, b: c + half };
+}
+
+test('at rest, each eye sits centered in its own window at full size', () => {
+  const s = makeStage(cfg);
+  const p = s.crowdPlacement(0);
+  assert.equal(p.scale, 1);
+  assert.equal(s.toViewportX(p.L.centerX, 'left'), 1920 / 2);
+  assert.equal(s.toViewportX(p.R.centerX, 'right'), 1920 / 2);
+});
+
+test('fully crowded, both eyes fit side by side inside the left window', () => {
+  const s = makeStage(cfg);
+  const p = s.crowdPlacement(1);
+  const L = span(s, p.L, 'left'), R = span(s, p.R, 'left');
+  for (const [name, e] of [['left', L], ['right', R]]) {
+    assert.ok(e.a >= 0 && e.b <= 1920, `${name} eye clipped: ${e.a.toFixed(0)}..${e.b.toFixed(0)}`);
+  }
+  assert.ok(L.b <= R.a, 'the eyes overlap');
+  // Crowded, not merely sharing: the space between them is small next to an eye.
+  assert.ok(R.a - L.b < 0.25 * (L.b - L.a), `gap between eyes too wide: ${(R.a - L.b).toFixed(0)}px`);
+  // Symmetric about the window center, so the pair reads as one deliberate move.
+  assert.ok(Math.abs((L.a + R.b) / 2 - 1920 / 2) < 1e-6, 'pair is off-center');
+});
+
+test('both eyes compress together, never one faster than the other', () => {
+  const s = makeStage(cfg);
+  let prev = 1;
+  for (let i = 0; i <= 100; i++) {
+    const { scale } = s.crowdPlacement(i / 100);
+    assert.ok(scale <= prev + 1e-12, 'scale must shrink monotonically with crowding');
+    prev = scale;
+  }
+  assert.ok(prev <= 0.55 && prev >= 0.45, `crowded scale should be ~0.5 (DESIGN 4.1), got ${prev}`);
+});
+
+test('in transit, an eye is never in both windows at once', () => {
+  const s = makeStage(cfg);
+  for (let i = 0; i <= 1000; i++) {
+    const p = s.crowdPlacement(i / 1000);
+    for (const side of ['L', 'R']) {
+      const inLeft = span(s, p[side], 'left'), inRight = span(s, p[side], 'right');
+      const onLeft = inLeft.b > 0 && inLeft.a < 1920;
+      const onRight = inRight.b > 0 && inRight.a < 1920;
+      assert.ok(!(onLeft && onRight), `eye ${side} straddles both windows at crowd ${i / 1000}`);
+    }
+  }
+});

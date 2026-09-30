@@ -57,20 +57,22 @@ function layout() {
 function frame() {
   const s = showState(Date.now(), { ...DEFAULT_SHOW_CONFIG, energyDrift: state.energyDrift });
   const vw = stage.viewportW;
+  // Both eyes' positions and their ONE shared scale, derived from the stage.
+  const placement = stage.crowdPlacement(s.crowd);
 
   for (const e of eyes) {
     const eyeState = e.side === 'L' ? s.eyeL : s.eyeR;
     updateEye(e.svg._refs, { ...eyeState, pupilShape: e.pupilShape });
 
-    const home = e.side === 'L' ? stage.viewports.left.x0 : stage.viewports.right.x0;
-    const stageX = home + eyeState.stageOffset * vw;
-    const localX = stage.toViewportX(stageX, viewport);
+    // The holder is one viewport wide with the eye at its center, so its left
+    // edge sits half a viewport left of the eye's center. Wander is shared.
+    const centerX = placement[e.side].centerX + eyeState.stageOffset * vw;
+    const localX = stage.toViewportX(centerX - vw / 2, viewport);
 
     // Crowding compresses the eyes so two fit in one window. `squash` distorts
     // horizontally (squash-and-stretch, reads as crowded); `shrink` scales
     // uniformly (reads as receding).
-    const crowd = Math.abs(eyeState.stageOffset);
-    const k = 1 - Math.min(1, crowd) * 0.52;
+    const k = placement.scale;
     const scale = state.crowdStyle === 'squash' ? `scaleX(${k})` : `scale(${k})`;
 
     e.holder.style.transform = `translateX(${localX}px) ${scale}`;
