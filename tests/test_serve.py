@@ -169,3 +169,68 @@ def test_load_config_survives_non_object_json(tmp_path):
     path.write_text("[]", encoding="utf-8")
     config = load_config(path)
     assert config["shape"] in VALID["shape"]
+
+
+# --- Test gags ---------------------------------------------------------------
+
+import re
+
+from server.serve import PERFORMANCE_NAMES, SCHEDULE_LEAD_MS
+
+
+def test_performance_names_match_the_show():
+    """The server's names are a copy of poses.js. Fail if the two drift apart."""
+    source = (Path(__file__).parent.parent / "public/js/poses.js").read_text(encoding="utf-8")
+    names = []
+    for const in ("GAG_NAMES", "REACTION_NAMES"):
+        body = re.search(rf"export const {const} = \[(.*?)\]", source, re.S).group(1)
+        names += re.findall(r"'([^']+)'", body)
+    assert list(PERFORMANCE_NAMES) == names
+
+
+def test_test_gag_off_by_default(running):
+    base, _ = running
+    _, body = get(f"{base}/config.json")
+    assert json.loads(body)["testGag"] == "off"
+
+
+def test_accepts_each_test_gag_and_schedules_it(running):
+    import time
+
+    base, _ = running
+    for name in PERFORMANCE_NAMES:
+        status, body = post(f"{base}/config", {"testGag": name})
+        assert status == 200, body
+        assert body["testGag"] == name
+        lead_ms = body["testGagAt"] - time.time() * 1000
+        assert 2000 < lead_ms <= SCHEDULE_LEAD_MS + 100, f"lead {lead_ms}ms"
+
+
+def test_rejects_unknown_or_non_string_test_gags(running):
+    base, _ = running
+    for bad in ["nope", "idle", "toString", "", 1, True, None, ["crossEyed"]]:
+        status, _ = post(f"{base}/config", {"testGag": bad})
+        assert status == 400, f"accepted {bad!r}"
+
+
+def test_stop_turns_the_test_gag_off(running):
+    base, _ = running
+    post(f"{base}/config", {"testGag": "crossEyed"})
+    status, body = post(f"{base}/config", {"testGag": "off"})
+    assert status == 200
+    assert body["testGag"] == "off"
+
+
+def test_a_later_style_change_does_not_replay_the_test(running):
+    base, _ = running
+    _, first = post(f"{base}/config", {"testGag": "crossEyed"})
+    _, later = post(f"{base}/config", {"palette": "green"})
+    assert later["testGagAt"] == first["testGagAt"], "testGagAt must only move when a test is posted"
+
+
+def test_load_config_ignores_a_non_numeric_test_gag_at(tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps({"testGag": "crossEyed", "testGagAt": "soon"}), encoding="utf-8")
+    config = load_config(path)
+    assert config["testGag"] == "crossEyed"
+    assert config["testGagAt"] == 0

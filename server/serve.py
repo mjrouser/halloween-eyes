@@ -24,12 +24,21 @@ from pathlib import Path
 
 logger = logging.getLogger("halloween-eyes")
 
+#: Every performance the show can play: a copy of GAG_NAMES + REACTION_NAMES in
+#: public/js/poses.js. tests/test_serve.py fails if the two lists drift apart.
+PERFORMANCE_NAMES = (
+    "crossEyed", "wallEyed", "wanderingEye", "bothOneWindow",
+    "lockOn", "suspicious", "mockSurprise",
+)
+
 #: Allowed values. Anything else is rejected rather than coerced.
 VALID = {
     "shape": {"amber", "ember"},
     "palette": {"amber", "green"},
     "energyDrift": {True, False},
     "crowdStyle": {"shrink", "squash"},
+    # A test gag loops one performance for two minutes (docs/specs/2026-10-05-test-gags-design.md).
+    "testGag": {"off", *PERFORMANCE_NAMES},
 }
 
 DEFAULTS = {
@@ -38,6 +47,8 @@ DEFAULTS = {
     "energyDrift": True,
     "crowdStyle": "shrink",
     "effectiveAt": 0,
+    "testGag": "off",
+    "testGagAt": 0,
 }
 
 #: A change is scheduled this far ahead so both windows, polling every 2s,
@@ -75,6 +86,8 @@ def load_config(path: Path) -> dict:
             config[key] = data[key]
     if isinstance(data.get("effectiveAt"), (int, float)):
         config["effectiveAt"] = data["effectiveAt"]
+    if isinstance(data.get("testGagAt"), (int, float)) and not isinstance(data.get("testGagAt"), bool):
+        config["testGagAt"] = data["testGagAt"]
     return config
 
 
@@ -148,7 +161,12 @@ def make_server(root: Path, config_path: Path, port: int, bind: str) -> Threadin
 
             config = load_config(config_path)
             config.update(clean)
-            config["effectiveAt"] = int(time.time() * 1000) + SCHEDULE_LEAD_MS
+            start = int(time.time() * 1000) + SCHEDULE_LEAD_MS
+            config["effectiveAt"] = start
+            # A test gag gets its own start time, set only when a test is posted,
+            # so a later style change cannot replay an old test.
+            if clean.get("testGag", "off") != "off":
+                config["testGagAt"] = start
 
             tmp = config_path.with_suffix(".json.tmp")
             tmp.write_text(json.dumps(config, indent=2), encoding="utf-8")
