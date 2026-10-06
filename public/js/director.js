@@ -8,7 +8,7 @@
 // index — see rng.js and the lint in tools/check-no-random.sh.
 
 import { rand01, pick } from './rng.js';
-import { POSES, PROFILES, GAG_NAMES, REACTION_NAMES, profileDuration } from './poses.js';
+import { POSES, PROFILES, GAG_NAMES, REACTION_NAMES, PERFORMANCE_NAMES, profileDuration } from './poses.js';
 import { applyProfile } from './motion.js';
 
 export const DEFAULT_SHOW_CONFIG = {
@@ -26,6 +26,44 @@ export const DEFAULT_SHOW_CONFIG = {
   wanderMs: 660000,
   wanderMax: 0.03
 };
+
+/** Test gags (docs/specs/2026-10-05-test-gags-design.md). */
+export const TEST_GAG_PAUSE_MS = 4000;     // idle beat between loops
+export const TEST_GAG_EXPIRY_MS = 120000;  // a test started from the phone stops by itself
+
+const isPerformance = (name) => PERFORMANCE_NAMES.includes(name);
+
+/**
+ * The cfg.testGag object for showState, or undefined for the normal show.
+ * The URL (desk) wins and never expires; `at: 0` aligns its loop to the clock,
+ * so two desk windows with the same ?gag= stay in sync. From config (the Pi),
+ * the loop starts at testGagAt and expires two minutes later.
+ */
+export function testGagFrom({ urlGag, testGag, testGagAt }) {
+  if (isPerformance(urlGag)) return { name: urlGag, at: 0, expires: Infinity };
+  if (isPerformance(testGag) && Number.isFinite(testGagAt)) {
+    return { name: testGag, at: testGagAt, expires: testGagAt + TEST_GAG_EXPIRY_MS };
+  }
+  return undefined;
+}
+
+/**
+ * Which performance is on now: a test gag inside its span, else this cycle's.
+ * `active` is false between performances (and in a test gag's pause).
+ */
+function currentPerformance(tMs, cfg) {
+  const test = cfg.testGag;
+  if (test && isPerformance(test.name) && tMs >= test.at && tMs < test.expires) {
+    const duration = profileDuration(test.name);
+    const elapsed = (tMs - test.at) % (duration + TEST_GAG_PAUSE_MS);
+    return { name: test.name, active: elapsed < duration, elapsed };
+  }
+  const cycle = Math.floor(tMs / cfg.cycleMs);
+  const intoCycle = tMs - cycle * cfg.cycleMs;
+  const perf = performanceFor(cycle, cfg);
+  const elapsed = intoCycle - perf.startAt;
+  return { name: perf.name, active: elapsed >= 0 && elapsed < perf.duration, elapsed };
+}
 
 /** 1.0 early in the evening, easing down to ~0.55 by the end. */
 function energyAt(tMs, cfg) {
@@ -93,17 +131,12 @@ function performanceFor(cycle, cfg) {
  */
 export function showState(tMs, cfg = DEFAULT_SHOW_CONFIG) {
   const energy = energyAt(tMs, cfg);
-  const cycle = Math.floor(tMs / cfg.cycleMs);
-  const intoCycle = tMs - cycle * cfg.cycleMs;
-  const perf = performanceFor(cycle, cfg);
-
-  const active = intoCycle >= perf.startAt && intoCycle < perf.startAt + perf.duration;
-  const elapsed = intoCycle - perf.startAt;
+  const { name, active, elapsed } = currentPerformance(tMs, cfg);
   const { amount, phase } = active
-    ? applyProfile(PROFILES[perf.name], elapsed)
+    ? applyProfile(PROFILES[name], elapsed)
     : { amount: 0, phase: 'done' };
 
-  const poseName = active ? perf.name : 'idle';
+  const poseName = active ? name : 'idle';
   const pose = POSES[poseName] ?? POSES.idle;
   const rest = POSES.idle;
 

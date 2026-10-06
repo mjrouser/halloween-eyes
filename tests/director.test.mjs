@@ -230,3 +230,75 @@ test('crowding is one shared amount, peaking during bothOneWindow', () => {
   }
   assert.ok(peak > 0.99, `bothOneWindow never fully crowded: peak ${peak}`);
 });
+
+import { testGagFrom, TEST_GAG_PAUSE_MS, TEST_GAG_EXPIRY_MS } from '../public/js/director.js';
+import { PERFORMANCE_NAMES, profileDuration } from '../public/js/poses.js';
+
+// --- Test gags: one chosen performance on a loop, for testing. ---
+
+test('there are seven performances to test', () => {
+  assert.deepEqual(PERFORMANCE_NAMES, [
+    'crossEyed', 'wallEyed', 'wanderingEye', 'bothOneWindow',
+    'lockOn', 'suspicious', 'mockSurprise'
+  ]);
+});
+
+test('a test gag loops: performance, pause, performance', () => {
+  const name = 'crossEyed';
+  const dur = profileDuration(name);
+  const at = T;
+  const tcfg = { ...cfg, testGag: { name, at, expires: at + TEST_GAG_EXPIRY_MS } };
+  const period = dur + TEST_GAG_PAUSE_MS;
+  for (const loop of [0, 1, 5]) {
+    const start = at + loop * period;
+    assert.equal(showState(start + 1, tcfg).poseName, name, `loop ${loop} did not start`);
+    assert.equal(showState(start + dur - 1, tcfg).poseName, name, `loop ${loop} ended early`);
+    assert.equal(showState(start + dur + 1, tcfg).poseName, 'idle', `loop ${loop} has no pause`);
+    assert.equal(showState(start + period - 1, tcfg).poseName, 'idle', `loop ${loop} pause too short`);
+  }
+});
+
+test('outside its span, a test gag changes nothing', () => {
+  const testGag = { name: 'crossEyed', at: T + 60000, expires: T + 60000 + TEST_GAG_EXPIRY_MS };
+  const tcfg = { ...cfg, testGag };
+  for (const t of [T, T + 59999, testGag.expires, testGag.expires + 5000]) {
+    assert.deepEqual(showState(t, tcfg), showState(t, cfg), `test gag leaked at ${t - T}`);
+  }
+});
+
+test('an unknown or prototype-key name is ignored', () => {
+  for (const name of ['nope', 'idle', 'toString', '__proto__', 'constructor', '', undefined]) {
+    const tcfg = { ...cfg, testGag: { name, at: T, expires: T + TEST_GAG_EXPIRY_MS } };
+    for (const dt of [0, 1000, 5000]) {
+      assert.deepEqual(showState(T + dt, tcfg), showState(T + dt, cfg), `name ${String(name)} was not ignored`);
+    }
+  }
+});
+
+test('a window that reloads mid-test rejoins in phase', () => {
+  // The state depends only on (tMs, cfg), so two calls agree across a loop boundary.
+  const name = 'bothOneWindow';
+  const tcfg = { ...cfg, testGag: { name, at: T, expires: T + TEST_GAG_EXPIRY_MS } };
+  const boundary = T + profileDuration(name) + TEST_GAG_PAUSE_MS;
+  for (const t of [boundary - 1, boundary, boundary + 1]) {
+    assert.deepEqual(showState(t, tcfg), showState(t, { ...tcfg }));
+  }
+});
+
+test('testGagFrom: the URL wins, loops forever, aligned to the clock', () => {
+  assert.deepEqual(testGagFrom({ urlGag: 'lockOn', testGag: 'crossEyed', testGagAt: T }),
+    { name: 'lockOn', at: 0, expires: Infinity });
+});
+
+test('testGagFrom: from config, starts at testGagAt and expires after two minutes', () => {
+  assert.deepEqual(testGagFrom({ urlGag: null, testGag: 'crossEyed', testGagAt: T }),
+    { name: 'crossEyed', at: T, expires: T + TEST_GAG_EXPIRY_MS });
+});
+
+test('testGagFrom: off, unknown, or missing start time means no test', () => {
+  assert.equal(testGagFrom({ urlGag: null, testGag: 'off', testGagAt: T }), undefined);
+  assert.equal(testGagFrom({ urlGag: 'toString', testGag: 'off', testGagAt: T }), undefined);
+  assert.equal(testGagFrom({ urlGag: null, testGag: 'nope', testGagAt: T }), undefined);
+  assert.equal(testGagFrom({ urlGag: null, testGag: 'crossEyed', testGagAt: undefined }), undefined);
+  assert.equal(testGagFrom({ urlGag: null, testGag: 'crossEyed', testGagAt: 'soon' }), undefined);
+});

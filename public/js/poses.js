@@ -46,6 +46,9 @@ export const PROFILES = {
 export const GAG_NAMES = ['crossEyed', 'wallEyed', 'wanderingEye', 'bothOneWindow'];
 export const REACTION_NAMES = ['lockOn', 'suspicious', 'mockSurprise'];
 
+/** Every performance, gags then reactions. The one list test gags validate against. */
+export const PERFORMANCE_NAMES = [...GAG_NAMES, ...REACTION_NAMES];
+
 /** Total wall-clock length of one pose performance. */
 export function profileDuration(name) {
   const p = PROFILES[name];
