@@ -28,7 +28,7 @@
     font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
     color: #7C7490; margin-bottom: 10px;
   }
-  .row { display: flex; gap: 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
   button {
     flex: 1; padding: 18px 12px; font: inherit; font-weight: 600;
     background: #1B1726; color: #E9E4DA;
@@ -62,6 +62,19 @@
     <button data-key="energyDrift" data-value="false">Off</button>
   </div></fieldset>
 
+  <fieldset><legend>Test a gag</legend>
+    <p class="sub">Loops one performance on both windows for 2 minutes, starting in about 5 seconds.</p>
+    <div class="row">
+    <button data-key="testGag" data-value="crossEyed">Cross-eyed</button>
+    <button data-key="testGag" data-value="wallEyed">Wall-eyed</button>
+    <button data-key="testGag" data-value="wanderingEye">Wandering eye</button>
+    <button data-key="testGag" data-value="bothOneWindow">Both in one window</button>
+    <button data-key="testGag" data-value="lockOn">Lock on</button>
+    <button data-key="testGag" data-value="suspicious">Suspicious</button>
+    <button data-key="testGag" data-value="mockSurprise">Mock surprise</button>
+    <button data-key="testGag" data-value="off">Stop</button>
+  </div></fieldset>
+
   <div id="status" role="status"></div>
 
 <script type="module">
@@ -76,9 +89,15 @@ function parse(value) {
   return value === 'true' ? true : value === 'false' ? false : value;
 }
 
+const TEST_GAG_EXPIRY_MS = 120000; // matches director.js; a hint for the buttons only
+
 function paint(config) {
+  // A test gag stops by itself after two minutes, so show it as on only while it runs.
+  const testRunning = config.testGag !== 'off' && Date.now() < config.testGagAt + TEST_GAG_EXPIRY_MS;
   for (const b of buttons) {
-    b.setAttribute('aria-pressed', String(config[b.dataset.key] === parse(b.dataset.value)));
+    let pressed = config[b.dataset.key] === parse(b.dataset.value);
+    if (b.dataset.key === 'testGag') pressed = testRunning ? pressed : b.dataset.value === 'off';
+    b.setAttribute('aria-pressed', String(pressed));
   }
 }
 
@@ -109,7 +128,9 @@ for (const b of buttons) {
       paint(data);
       // Phone and Pi clocks may differ slightly; this is a hint, not a countdown.
       const seconds = Math.max(0, Math.round((data.effectiveAt - Date.now()) / 1000));
-      statusEl.textContent = `Changing in ${seconds}s.`;
+      statusEl.textContent = payload.testGag && payload.testGag !== 'off'
+        ? `Test starts in ${seconds}s and loops for 2 minutes.`
+        : `Changing in ${seconds}s.`;
     } catch {
       statusEl.textContent = 'Could not reach the Pi.';
     }

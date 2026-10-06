@@ -4,7 +4,7 @@ import { eyeGeometry, BASE } from './geometry.js';
 import { PALETTES, SHAPES } from './themes.js';
 import { createEyeSvg, updateEye } from './render.js';
 import { makeStage, DEFAULT_GAP_EYE_WIDTHS } from './stage.js';
-import { showState, DEFAULT_SHOW_CONFIG } from './director.js';
+import { showState, DEFAULT_SHOW_CONFIG, testGagFrom } from './director.js';
 
 /**
  * Which half of the stage this window renders.
@@ -26,10 +26,15 @@ const state = {
   shape: 'amber',
   palette: 'amber',
   energyDrift: true,
-  crowdStyle: 'shrink'
+  crowdStyle: 'shrink',
+  testGag: 'off',   // from the control page; see testGagFrom()
+  testGagAt: 0
 };
 
 let viewport, stage, eyes, stageEl;
+
+// ?gag=<name> loops one performance at a desk (docs/specs/2026-10-05-test-gags-design.md).
+const urlGag = new URLSearchParams(location.search).get('gag');
 
 function buildEyes() {
   stageEl.replaceChildren();
@@ -55,7 +60,11 @@ function layout() {
 }
 
 function frame() {
-  const s = showState(Date.now(), { ...DEFAULT_SHOW_CONFIG, energyDrift: state.energyDrift });
+  const s = showState(Date.now(), {
+    ...DEFAULT_SHOW_CONFIG,
+    energyDrift: state.energyDrift,
+    testGag: testGagFrom({ urlGag, testGag: state.testGag, testGagAt: state.testGagAt })
+  });
   const vw = stage.viewportW;
   // Both eyes' positions and their ONE shared scale, derived from the stage.
   const placement = stage.crowdPlacement(s.crowd);

@@ -7,6 +7,9 @@ Two animated eyes, one per front window, on a Raspberry Pi 5.
     nvm use
     python3 server/serve.py --root public --port 8080
     open "http://localhost:8080/?viewport=left"
+    open "http://localhost:8080/?viewport=left&gag=bothOneWindow"   # loop one performance
+
+Valid gag names are in public/js/poses.js (GAG_NAMES, REACTION_NAMES).
 
 ## Test
 
