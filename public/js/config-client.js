@@ -8,6 +8,7 @@
 // Losing the network disables the toggle and nothing else.
 
 import { SHAPES, PALETTES } from './themes.js';
+import { PERFORMANCE_NAMES } from './poses.js';
 
 const POLL_MS = 2000;
 
@@ -19,9 +20,11 @@ const ALLOWED = {
   shape: Object.keys(SHAPES),
   palette: Object.keys(PALETTES),
   energyDrift: [true, false],
-  crowdStyle: ['shrink', 'squash']
+  crowdStyle: ['shrink', 'squash'],
+  testGag: ['off', ...PERFORMANCE_NAMES]
 };
-const KEYS = Object.keys(ALLOWED);
+// testGagAt is a time, not a choice from a list, so it is checked separately.
+const KEYS = [...Object.keys(ALLOWED), 'testGagAt'];
 
 export function startConfigClient(onApply, { url = 'config.json', pollMs = POLL_MS } = {}) {
   let current = null;
@@ -44,9 +47,10 @@ export function startConfigClient(onApply, { url = 'config.json', pollMs = POLL_
       if (response.ok) {
         const data = await response.json();
         const next = {};
-        for (const key of KEYS) {
+        for (const key of Object.keys(ALLOWED)) {
           if (ALLOWED[key].includes(data[key])) next[key] = data[key];
         }
+        if (Number.isFinite(data.testGagAt)) next.testGagAt = data.testGagAt;
 
         // Only keys that survived validation count. Comparing a dropped key
         // (undefined) against the current value would read as "changed" on

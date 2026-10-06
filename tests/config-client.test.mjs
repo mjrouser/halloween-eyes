@@ -136,3 +136,37 @@ test('stop() halts polling and cancels a pending switch', async () => {
   assert.equal(applied.length, 1, 'pending switch must be cancelled');
   assert.equal(globalThis.fetch.mock.callCount(), callsAfterStop, 'no polls after stop');
 });
+
+test('passes a valid test gag and its start time through', async () => {
+  const applied = [];
+  served = { ...BASE_CONFIG, testGag: 'bothOneWindow', testGagAt: 1_005_000 };
+  client = startConfigClient((c) => applied.push(c));
+  await flush();
+  await advance(0);
+  assert.equal(applied.at(-1).testGag, 'bothOneWindow');
+  assert.equal(applied.at(-1).testGagAt, 1_005_000);
+});
+
+test('drops an unknown test gag and a non-numeric start time', async () => {
+  const applied = [];
+  served = { ...BASE_CONFIG, testGag: 'toString', testGagAt: 'soon' };
+  client = startConfigClient((c) => applied.push(c));
+  await flush();
+  await advance(0);
+  assert.ok(!('testGag' in applied.at(-1)), 'unknown test gag reached the page');
+  assert.ok(!('testGagAt' in applied.at(-1)), 'non-numeric testGagAt reached the page');
+});
+
+test('a new test gag start time counts as a change', async () => {
+  const applied = [];
+  served = { ...BASE_CONFIG, testGag: 'crossEyed', testGagAt: 1_000_000 };
+  client = startConfigClient((c) => applied.push(c));
+  await flush();
+  await advance(0);
+  const before = applied.length;
+  served = { ...served, testGagAt: 1_010_000, effectiveAt: Date.now() + 5000 };
+  await advance(2000);
+  await advance(5000);
+  assert.equal(applied.length, before + 1, 'the same gag posted again did not re-trigger');
+  assert.equal(applied.at(-1).testGagAt, 1_010_000);
+});
