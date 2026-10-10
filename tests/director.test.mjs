@@ -261,8 +261,30 @@ test('a test gag loops: performance, pause, performance', () => {
 test('outside its span, a test gag changes nothing', () => {
   const testGag = { name: 'crossEyed', at: T + 60000, expires: T + 60000 + TEST_GAG_EXPIRY_MS };
   const tcfg = { ...cfg, testGag };
-  for (const t of [T, T + 59999, testGag.expires, testGag.expires + 5000]) {
+  // The test ends on the first loop boundary at or after expires.
+  const period = profileDuration('crossEyed') + TEST_GAG_PAUSE_MS;
+  const end = testGag.at + Math.ceil(TEST_GAG_EXPIRY_MS / period) * period;
+  for (const t of [T, T + 59999, end + cfg.cycleMs, end + 2 * cfg.cycleMs]) {
     assert.deepEqual(showState(t, tcfg), showState(t, cfg), `test gag leaked at ${t - T}`);
+  }
+});
+
+test('no pose snaps on or off at a test gag\'s start or end', () => {
+  // Every performance's amount is 0 at its own start and end, so a smooth show has
+  // no big frame-to-frame jump in vergence or crowd across the test's edges.
+  for (const name of PERFORMANCE_NAMES) {
+    for (let offset = 0; offset < cfg.cycleMs * 3; offset += 7919) {
+      const at = T + offset;
+      const tcfg = { ...cfg, testGag: { name, at, expires: at + TEST_GAG_EXPIRY_MS } };
+      const period = profileDuration(name) + TEST_GAG_PAUSE_MS;
+      const end = at + Math.ceil(TEST_GAG_EXPIRY_MS / period) * period;
+      for (const edge of [at, end]) {
+        const a = showState(edge - 16, tcfg), b = showState(edge, tcfg);
+        assert.ok(Math.abs(a.crowd - b.crowd) < 0.1, `${name}: crowd snapped at edge`);
+        assert.ok(Math.abs(a.eyeL.gaze - a.eyeR.gaze - (b.eyeL.gaze - b.eyeR.gaze)) < 0.1,
+          `${name}: vergence snapped at edge`);
+      }
+    }
   }
 });
 

@@ -53,16 +53,29 @@ export function testGagFrom({ urlGag, testGag, testGagAt }) {
  */
 function currentPerformance(tMs, cfg) {
   const test = cfg.testGag;
-  if (test && isPerformance(test.name) && tMs >= test.at && tMs < test.expires) {
-    const duration = profileDuration(test.name);
-    const elapsed = (tMs - test.at) % (duration + TEST_GAG_PAUSE_MS);
-    return { name: test.name, active: elapsed < duration, elapsed };
-  }
   const cycle = Math.floor(tMs / cfg.cycleMs);
   const intoCycle = tMs - cycle * cfg.cycleMs;
   const perf = performanceFor(cycle, cfg);
   const elapsed = intoCycle - perf.startAt;
-  return { name: perf.name, active: elapsed >= 0 && elapsed < perf.duration, elapsed };
+  const active = elapsed >= 0 && elapsed < perf.duration;
+
+  if (test && isPerformance(test.name)) {
+    const duration = profileDuration(test.name);
+    const period = duration + TEST_GAG_PAUSE_MS;
+    // End on a loop boundary, so the last loop is never cut off mid-performance.
+    const end = test.at + Math.ceil((test.expires - test.at) / period) * period;
+    if (tMs >= test.at && tMs < end) {
+      const into = (tMs - test.at) % period;
+      return { name: test.name, active: into < duration, elapsed: into };
+    }
+    // A normal performance straddling the test's start or end would snap on or
+    // off mid-pose (bothOneWindow would jump windows), so stay idle through it.
+    const perfStart = tMs - elapsed;
+    if (active && perfStart < end && perfStart + perf.duration > test.at) {
+      return { name: perf.name, active: false, elapsed };
+    }
+  }
+  return { name: perf.name, active, elapsed };
 }
 
 /** 1.0 early in the evening, easing down to ~0.55 by the end. */

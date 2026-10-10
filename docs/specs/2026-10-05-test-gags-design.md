@@ -21,9 +21,19 @@ it is **"gag X, starting at time T"**, and both windows get the same X and T.
 
 `showState(tMs, cfg)` accepts an optional `cfg.testGag = { name, at, expires }`.
 
-- While `at <= tMs < expires`, the performance is `name` on a loop: the full performance,
-  then a **4 s** pause, then again. Loop *k* starts at `at + k * (profileDuration(name) + 4000)`.
+- From `at`, the performance is `name` on a loop: the full performance, then a **4 s**
+  pause, then again. Loop *k* starts at `at + k * period`, where
+  `period = profileDuration(name) + 4000`.
+- The loop ends at `end`, the first loop boundary at or after `expires`
+  (`at + ceil((expires - at) / period) * period`), so the last loop is never cut off
+  mid-performance. A test can run up to one period past `expires`.
+- No snapping at the edges. A normal-show performance that would be running at `at` or
+  at `end` is replaced by idle for its whole length, rather than switching on or off
+  mid-pose (`bothOneWindow` would jump between windows).
 - Outside that span, or when `testGag` is absent, the show runs exactly as today.
+- Known limit: **Stop** mid-performance still snaps to the normal show. Each window holds
+  only the current config, not what it was showing a moment ago, so there is nothing to
+  ease from.
 - Everything else (idle gaze, blinks, wander, energy) is unchanged and still clock-derived.
 - Still a pure function of time and config. No `Math.random()`.
 - Any of the **seven** performances can be named: the four gags in `GAG_NAMES` and the three
@@ -47,7 +57,7 @@ it is **"gag X, starting at time T"**, and both windows get the same X and T.
   existing 5 s lead, so both windows have polled it before it starts). Posting `"off"`
   clears it.
 - **Expiry: 2 minutes** after `testGagAt` (`expires = testGagAt + 120000`), applied in the
-  director. A test left running cannot loop all Halloween night.
+  director and rounded up to the end of the current loop (see Director above). A test left running cannot loop all Halloween night.
 - **Its own start time.** `testGagAt` is separate from `effectiveAt`, so changing the
   palette later cannot replay an old test, and neither can a reboot: by then its two
   minutes are long gone.
@@ -70,7 +80,8 @@ it is **"gag X, starting at time T"**, and both windows get the same X and T.
 Unit tests (`node --test`, `pytest`):
 
 - Director: with a `testGag`, the named performance is active at the expected loop starts,
-  idle in the 4 s pauses, and the normal show resumes at `expires`. Unknown names are
+  idle in the 4 s pauses, and the normal show resumes at the first loop boundary after
+  `expires`. No large frame-to-frame jump in crowd or vergence at the test's start or end. Unknown names are
   ignored. Two calls with the same `tMs` and config agree (determinism).
 - Server: accepts each real name and `"off"`; rejects unknown names and non-strings; sets
   `testGagAt` 5 s ahead; a later palette change leaves `testGagAt` alone.
