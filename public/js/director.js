@@ -16,7 +16,10 @@ export const DEFAULT_SHOW_CONFIG = {
   saccadeMs: 2200,      // how long an idle gaze target is held
   blinkEveryMs: 5200,   // nominal blink spacing; jittered per slot
   blinkMs: 180,
-  reactionChance: 0.4,  // of performances that are reactions rather than gags
+  // bothOneWindow is featured: it is the gag that reads from the street (first
+  // test run, 2026-10-10). The eye-only gags are subtle on these monitors.
+  bothOneWindowChance: 0.4,  // of all performances; ~every 3 min
+  reactionChance: 0.4,  // of the remaining performances, reactions rather than gags
   energyDrift: true,
   eveningStartHour: 17.75,  // 17:45
   eveningEndHour: 23.5,     // 23:30
@@ -127,11 +130,18 @@ function slowWander(tMs, cfg) {
   return from + (to - from) * u;
 }
 
+/** The gags that share the non-featured slots: everything but bothOneWindow. */
+const OTHER_GAG_NAMES = GAG_NAMES.filter((n) => n !== 'bothOneWindow');
+
 /** Which performance runs in this cycle, and when it starts within it. */
-function performanceFor(cycle, cfg) {
-  const isReaction = rand01(cycle, 3) < cfg.reactionChance;
-  const names = isReaction ? REACTION_NAMES : GAG_NAMES;
-  const name = pick(names, cycle, 4);
+export function performanceFor(cycle, cfg) {
+  let name;
+  if (rand01(cycle, 7) < cfg.bothOneWindowChance) {
+    name = 'bothOneWindow';
+  } else {
+    const isReaction = rand01(cycle, 3) < cfg.reactionChance;
+    name = pick(isReaction ? REACTION_NAMES : OTHER_GAG_NAMES, cycle, 4);
+  }
   const duration = profileDuration(name);
   const latest = Math.max(0, cfg.cycleMs - duration);
   const startAt = rand01(cycle, 5) * latest;

@@ -324,3 +324,21 @@ test('testGagFrom: off, unknown, or missing start time means no test', () => {
   assert.equal(testGagFrom({ urlGag: null, testGag: 'crossEyed', testGagAt: undefined }), undefined);
   assert.equal(testGagFrom({ urlGag: null, testGag: 'crossEyed', testGagAt: 'soon' }), undefined);
 });
+
+// --- Scheduling: bothOneWindow is the featured gag (reads best from the street). ---
+
+import { performanceFor } from '../public/js/director.js';
+
+test('bothOneWindow runs about 40% of the time; every other performance still runs', () => {
+  const counts = {};
+  const N = 20000;
+  for (let cycle = 0; cycle < N; cycle++) {
+    const { name } = performanceFor(cycle, cfg);
+    counts[name] = (counts[name] ?? 0) + 1;
+  }
+  const share = counts.bothOneWindow / N;
+  assert.ok(Math.abs(share - cfg.bothOneWindowChance) < 0.02, `bothOneWindow share ${share}`);
+  for (const name of PERFORMANCE_NAMES) {
+    assert.ok(counts[name] / N > 0.05, `${name} too rare: ${counts[name]}`);
+  }
+});
